@@ -1,0 +1,21 @@
+{
+  "name": "ai-powered-portfolio",
+  "version": "1.0.0",
+  "description": "An AI-powered developer portfolio with Google Gemini integration",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build && cp -r frontend/dist/* public/",
+    "start": "cd backend && php -S localhost:8080 index.php"
+  },
+  "keywords": [
+    "react",
+    "php",
+    "ai",
+    "gemini",
+    "portfolio",
+    "cloud-run"
+  ],
+  "author": "Developer",
+  "license": "MIT"
+}

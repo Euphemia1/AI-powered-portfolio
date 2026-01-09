@@ -7,7 +7,7 @@ header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
 // Handle preflight requests
-if (['REQUEST_METHOD'] === 'OPTIONS') {
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
@@ -15,15 +15,15 @@ if (['REQUEST_METHOD'] === 'OPTIONS') {
 header('Content-Type: application/json');
 
 // Define API routes
-\ = \['REQUEST_URI'];
-\ = \['REQUEST_METHOD'];
+$request_uri = $_SERVER['REQUEST_URI'];
+$request_method = $_SERVER['REQUEST_METHOD'];
 
 // Check if request is for API
-if (strpos(\, '/api/') === 0) {
-    \ = substr(\, strlen('/api'));
+if (strpos($request_uri, '/api/') === 0) {
+    $path = substr($request_uri, strlen('/api'));
     
     // Route to appropriate handler
-    if (\ === '/ask' && \ === 'POST') {
+    if ($path === '/ask' && $request_method === 'POST') {
         require_once __DIR__ . '/api/ask.php';
         exit;
     } else {
@@ -34,11 +34,11 @@ if (strpos(\, '/api/') === 0) {
     }
 } else {
     // Serve static files from public directory if not API request
-    \ = __DIR__ . '/../public' . \;
-    if (file_exists(\) && !is_dir(\)) {
+    $requested_file = __DIR__ . '/../public' . $request_uri;
+    if (file_exists($requested_file) && !is_dir($requested_file)) {
         // Serve the static file
-        \ = pathinfo(\, PATHINFO_EXTENSION);
-        \ = [
+        $extension = pathinfo($requested_file, PATHINFO_EXTENSION);
+        $mime_types = [
             'css' => 'text/css',
             'js' => 'application/javascript',
             'json' => 'application/json',
@@ -52,10 +52,10 @@ if (strpos(\, '/api/') === 0) {
             'txt' => 'text/plain'
         ];
         
-        if (isset(\[\])) {
-            header('Content-Type: ' . \[\]);
+        if (isset($mime_types[$extension])) {
+            header('Content-Type: ' . $mime_types[$extension]);
         }
-        readfile(\);
+        readfile($requested_file);
         exit;
     } else {
         // If no static file found, serve index.html for SPA

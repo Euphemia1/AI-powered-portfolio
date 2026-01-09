@@ -7,22 +7,22 @@ require_once __DIR__ . '/../config/gemini.php';
 header('Content-Type: application/json');
 
 // Handle only POST requests
-if (['REQUEST_METHOD'] !== 'POST') {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['error' => 'Method not allowed']);
     exit;
 }
 
 // Get the input data
-\ = json_decode(file_get_contents('php://input'), true);
+$input = json_decode(file_get_contents('php://input'), true);
 
-if (!isset(\['prompt']) || empty(trim(\['prompt']))) {
+if (!isset($input['prompt']) || empty(trim($input['prompt']))) {
     http_response_code(400);
     echo json_encode(['error' => 'Prompt is required']);
     exit;
 }
 
-\ = trim(\['prompt']);
+$prompt = trim($input['prompt']);
 
 // Validate Gemini API key
 if (empty(GEMINI_API_KEY)) {
@@ -33,59 +33,59 @@ if (empty(GEMINI_API_KEY)) {
 
 try {
     // Prepare the request to Gemini API
-    \ = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' . GEMINI_API_KEY;
+    $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' . GEMINI_API_KEY;
     
-    \ = [
+    $postData = [
         'contents' => [
             'parts' => [
                 [
-                    'text' => \ . ' Please provide a concise, helpful response related to the developer portfolio.'
+                    'text' => $prompt . ' Please provide a concise, helpful response related to the developer portfolio.'
                 ]
             ]
         ]
     ];
     
     // Initialize cURL
-    \ = curl_init();
-    curl_setopt(\, CURLOPT_URL, \);
-    curl_setopt(\, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt(\, CURLOPT_POST, true);
-    curl_setopt(\, CURLOPT_POSTFIELDS, json_encode(\));
-    curl_setopt(\, CURLOPT_HTTPHEADER, [
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $geminiUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Content-Type: application/json'
     ]);
-    curl_setopt(\, CURLOPT_TIMEOUT, 30); // 30 second timeout
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30); // 30 second timeout
     
     // Execute the request
-    \ = curl_exec(\);
-    \ = curl_getinfo(\, CURLINFO_HTTP_CODE);
-    \Cannot convert 'System.Object[]' to the type 'System.String' required by parameter 'Name'. Specified method is not supported. A positional parameter cannot be found that accepts argument 'backend'. A parameter cannot be found that matches parameter name 'Chord'. A parameter cannot be found that matches parameter name 'Chord'. A parameter cannot be found that matches parameter name 'Chord'. A parameter cannot be found that matches parameter name 'Chord'. = curl_error(\);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
     
-    curl_close(\);
+    curl_close($ch);
     
-    if (\Cannot convert 'System.Object[]' to the type 'System.String' required by parameter 'Name'. Specified method is not supported. A positional parameter cannot be found that accepts argument 'backend'. A parameter cannot be found that matches parameter name 'Chord'. A parameter cannot be found that matches parameter name 'Chord'. A parameter cannot be found that matches parameter name 'Chord'. A parameter cannot be found that matches parameter name 'Chord'.) {
-        throw new Exception('cURL Error: ' . \Cannot convert 'System.Object[]' to the type 'System.String' required by parameter 'Name'. Specified method is not supported. A positional parameter cannot be found that accepts argument 'backend'. A parameter cannot be found that matches parameter name 'Chord'. A parameter cannot be found that matches parameter name 'Chord'. A parameter cannot be found that matches parameter name 'Chord'. A parameter cannot be found that matches parameter name 'Chord'.);
+    if ($error) {
+        throw new Exception('cURL Error: ' . $error);
     }
     
-    if (\ !== 200) {
-        throw new Exception('API request failed with HTTP code: ' . \ . ', Response: ' . \);
+    if ($httpCode !== 200) {
+        throw new Exception('API request failed with HTTP code: ' . $httpCode . ', Response: ' . $response);
     }
     
     // Parse the response from Gemini
-    \ = json_decode(\, true);
+    $responseData = json_decode($response, true);
     
-    if (\ === null) {
+    if ($responseData === null) {
         throw new Exception('Invalid JSON response from Gemini API');
     }
     
     // Extract the text response
-    \ = '';
-    if (isset(\['candidates'][0]['content']['parts'][0]['text'])) {
-        \ = \['candidates'][0]['content']['parts'][0]['text'];
+    $textResponse = '';
+    if (isset($responseData['candidates'][0]['content']['parts'][0]['text'])) {
+        $textResponse = $responseData['candidates'][0]['content']['parts'][0]['text'];
     } else {
         // If no candidates found, try to get the error details
-        if (isset(\['error'])) {
-            throw new Exception('Gemini API Error: ' . \['error']['message']);
+        if (isset($responseData['error'])) {
+            throw new Exception('Gemini API Error: ' . $responseData['error']['message']);
         } else {
             throw new Exception('Could not extract response from Gemini API');
         }
@@ -94,19 +94,19 @@ try {
     // Return the response
     echo json_encode([
         'success' => true,
-        'response' => \,
-        'prompt' => \
+        'response' => $textResponse,
+        'prompt' => $prompt
     ]);
     
-} catch (Exception \) {
+} catch (Exception $e) {
     // Log the error for debugging
-    error_log('Gemini API Error: ' . \->getMessage());
+    error_log('Gemini API Error: ' . $e->getMessage());
     
     // Return error response
     http_response_code(500);
     echo json_encode([
         'error' => 'An error occurred while processing your request',
-        'details' => \->getMessage()
+        'details' => $e->getMessage()
     ]);
-}
+}?>
 ?>

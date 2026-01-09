@@ -3,7 +3,7 @@
 const apiService = {
   async askQuestion(prompt) {
     try {
-      const response = await fetch(\\/ask\, {
+      const response = await fetch(`${API_BASE_URL}/ask`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -12,7 +12,7 @@ const apiService = {
       });
 
       if (!response.ok) {
-        throw new Error(\HTTP error! status: \\);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
